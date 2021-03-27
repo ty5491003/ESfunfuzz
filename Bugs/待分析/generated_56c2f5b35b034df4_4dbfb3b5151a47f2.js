@@ -1,0 +1,1 @@
+function DumpObject(o) { for (var i = 0; i < o.length; ++i) { var d = this[o]; } } var a = new Array(4294967295); print(a.length); a[4294967294] = 1; DumpObject(a); 

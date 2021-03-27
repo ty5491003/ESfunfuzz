@@ -1,0 +1,1 @@
+function foo(arr) { var o2 = o; var y = 100; for (var i = 0; i < 10; i++) { y += o2.x + arr; } print(y); } var o = { x: 1 }; var arr = [ 1, 2, 3, 4 ]; var o = {}; o.prototype = options; Array.prototype.join = function() { o.prototype._o.onClick.call(this, array); this._o.onCompleted(); }; 

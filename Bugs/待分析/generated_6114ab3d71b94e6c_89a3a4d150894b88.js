@@ -1,0 +1,1 @@
+let x = 2; let y = 1; function blah() { return 3; } function __parseUri() { return __webpack_require__("./node_modules/core-js/modules/_reverse.js"); } function __webpack_require__() { var i = 0; _isPromise(i); if (y == 1) print(c.options); } __parseUri.options = 'Pass'; __proto__ = "production"; 
