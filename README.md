@@ -1,4 +1,4 @@
-# API-Fuzzing
+# ESfunfuzz
 
 ## 安装
 
@@ -6,7 +6,7 @@
 sudo apt update
 sudo apt install nodejs npm
 npm install esprima@4.0.1 escodegen@2.0.0 estraverse@5.2.0 uglify-es@3.3.9
-git clone https://github.com/ty5491003/API-Fuzzing.git
+git clone https://github.com/ty5491003/ESfunfuzz.git
 cd API-Fuzzing
 pip install -r requirements.txt
 ```
