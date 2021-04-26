@@ -94,7 +94,7 @@ def sample_solo(model, prefix, max_gen_length, token_to_idx, idx_to_token, segme
         return gen_code_list
 
 
-def sample_multi(model, prefix, batch_size, max_gen_length, token_to_idx, idx_to_token, segment_length, temperature=1.0):
+def sample_multi(model, prefix, batch_size, max_gen_length, token_to_idx, idx_to_token, segment_length, embedding_level='char', temperature=1.0):
     """
     采样方法，给定参数，即可批量开始生成（续写）代码。此方法主要用来批量从头开始生成大量数据
     Args:
@@ -121,7 +121,7 @@ def sample_multi(model, prefix, batch_size, max_gen_length, token_to_idx, idx_to
         prefix_iter = segmentation(prefix, segment_length)
         for prefix in prefix_iter:
             # input_batch: (batch_size, len(prefix))
-            input_batch = text2token(prefix, token_to_idx, batch_size)
+            input_batch = text2token(prefix, token_to_idx, batch_size, embedding_level)
             # logit: (batch_size, len(prefix), output_size)
             logit, hidden = model(input_batch, hidden)
 

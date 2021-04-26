@@ -32,11 +32,11 @@ if __name__ == '__main__':
     # 在工作目录下保存配置文件和词汇表
     workspace_path = os.path.join('CodeGenerator/workspace', hparams.workspace)
     save_json(hparams.__dict__, os.path.join(workspace_path, 'hparams.json'))
-    save_json(preprocessor.char_to_idx, os.path.join(workspace_path, 'char_to_idx.json'))
-    save_json(preprocessor.idx_to_char, os.path.join(workspace_path, 'idx_to_char.json'))
+    save_json(preprocessor.token_to_idx, os.path.join(workspace_path, 'token_to_idx.json'))
+    save_json(preprocessor.idx_to_token, os.path.join(workspace_path, 'idx_to_token.json'))
 
-    char_to_idx = preprocessor.char_to_idx
-    vocab_size = len(char_to_idx)
+    token_to_idx = preprocessor.token_to_idx
+    vocab_size = len(token_to_idx)
     assert vocab_size == preprocessor.chars_number
 
     # 模型声明

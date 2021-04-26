@@ -68,8 +68,8 @@ if __name__ == '__main__':
     # 读取工作路径和训练词汇表
     print("正在恢复词汇表和模型，请稍等...")
     workspace_path = os.path.dirname(hparams.gen_model)
-    char_to_idx = load_json(os.path.join(workspace_path, 'char_to_idx.json'))
-    idx_to_char = load_json(os.path.join(workspace_path, 'idx_to_char.json'), transfer=True)
+    token_to_idx = load_json(os.path.join(workspace_path, 'token_to_idx.json'))
+    idx_to_token = load_json(os.path.join(workspace_path, 'idx_to_token.json'), transfer=True)
 
     # 恢复模型（注意load方法没有device参数）
     model = torch.load(hparams.gen_model, map_location=f'cuda:{hparams.gpu}').to(device)
@@ -109,8 +109,8 @@ if __name__ == '__main__':
             gen_code = sample_solo(model=model,
                                    prefix=prefix,
                                    max_gen_length=hparams.max_gen_length,
-                                   token_to_idx=char_to_idx,
-                                   idx_to_token=idx_to_char,
+                                   token_to_idx=token_to_idx,
+                                   idx_to_token=idx_to_token,
                                    segment_length=hparams.segment_length,
                                    new_line_number=hparams.new_line_number,
                                    temperature=hparams.temperature,
