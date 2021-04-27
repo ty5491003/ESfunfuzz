@@ -27,9 +27,9 @@ def get_info(file_path):
 
     """
     getter = execjs.compile("""
-        let {get_senmantic_info} = require("./CaseMutator/mutation")
+        let {get_semantic_info} = require("./CaseMutator/mutation")
         function get(filePath){
-            return get_senmantic_info(filePath);
+            return get_semantic_info(filePath);
         }
      """)
     return getter.call("get", str(file_path))

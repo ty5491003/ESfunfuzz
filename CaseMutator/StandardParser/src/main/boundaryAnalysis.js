@@ -6,7 +6,7 @@ let toFunctionList = ['ToInteger', 'ToString', 'ToObject', 'ToNumber', 'ToBoolea
 let {logger} = require('../log/log_configuration');
 
 // 导入工具函数
-let {stringExists, deduplicate, reserveNumber, sort, getRandomNumberByGivenRange} = require('../main/utils');
+let {stringExists, deduplicate, reserveNumber, sort, getRandomNumberByGivenRange} = require('./utils');
 
 // 需要被递归调用的函数
 function getBoundaryConditionsRecursively(functionString, functionName) {

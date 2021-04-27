@@ -1,9 +1,9 @@
-let mutation = require('/usr/local/lib/node_modules/estraverse');
-let esprima = require('/usr/local/lib/node_modules/esprima');
-let escodegen = require('/usr/local/lib/node_modules/escodegen');
+let mutation = require('estraverse');
+let esprima = require('esprima');
+let escodegen = require('escodegen');
 let fs = require("fs");
 
-let {getValues} = require("../StandardParser/src/main/main");
+let {getValues, getInfo} = require("../CaseMutator/StandardParser/src/main/main");
 
 // as local arguments marker for arguments
 const FLAG = "LOCAL-ARGUMENT";
@@ -274,5 +274,29 @@ function testcaseMutation(filePath){
     return mutatedTestcases;
 }
 
+
+function get_semantic_info(filePath){
+    let file = fs.readFileSync(filePath).toString();
+    let result = JSON.parse(file);
+    let node;
+    let all_semantic_info = [];
+    let nodeNum = result.nodes.length;
+    for (let index = 0; index < nodeNum; index++) {
+        node = result.nodes[index];
+        // 修改后的API参数传递方式
+        let apiInfo = {};
+        apiInfo["name"] = node["ESAPI"]["name"];
+        apiInfo["argsNumber"] = node["arguments"].length;
+        let semantic_info = getInfo(apiInfo);
+        let temp = {};
+        temp["APIName"] = node["ESAPI"]["name"];
+        temp["Semantic_info"] = semantic_info;
+        all_semantic_info.push(temp);
+    }
+    return all_semantic_info;
+}
+
+
 exports.getMutationArguments = getMutationArguments;
 exports.testcaseMutation = testcaseMutation;
+exports.get_semantic_info = get_semantic_info;

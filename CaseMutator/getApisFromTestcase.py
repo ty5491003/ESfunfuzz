@@ -25,8 +25,8 @@ def get_function_nodes_from_testcase(testcase):
         except Exception:
             pass
     getFunctionNodes = execjs.compile("""
-        let estraverse = require('/usr/local/lib/node_modules/estraverse');
-        let esprima = require('/usr/local/lib/node_modules/esprima');
+        let estraverse = require('estraverse');
+        let esprima = require('esprima');
         let fs = require("fs");
 
         function analyzeCode(filename) {  
@@ -51,7 +51,7 @@ def get_function_nodes_from_testcase(testcase):
                     }
                 }   
             }); 
-            return nodes	
+            return nodes;
         }        
     """)
     nodes = getFunctionNodes.call("analyzeCode", testcase_path)
@@ -61,46 +61,20 @@ def get_function_nodes_from_testcase(testcase):
 
 def run_testcase(testbed: pathlib.Path, testcase: str):
     result = ""
-    if platform.system() == "Windows":
-        with tempfile.NamedTemporaryFile(prefix="javascriptTescase_", suffix=".js", delete=False) as f:
-            f.close()
-            testcase_path = f.name
-            try:
-                pathlib.Path(testcase_path).write_bytes(bytes(testcase, encoding="utf-8"))
-                cmd = []
-                for ob in testbed.split():
-                    cmd.append(ob)
-                cmd.append(testcase_path)
-                pro = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                                       stderr=subprocess.PIPE, universal_newlines=True)
-                # 若程序10秒执行不完就python就抛出异常
-                stdout, stderr = pro.communicate(timeout=10)
-                result += stdout if stdout else ""
-                result += stderr if stderr else ""
-            except subprocess.TimeoutExpired:
-                pro.kill()
-                logging.info("Timeout: JavaScript testcase execution took more than 60 seconds.")
-            except Exception as e:
-                pro.kill()
-                logging.warning(e)
-            os.remove(testcase_path)
-            return result
-    elif platform.system() == "Linux":
-        with tempfile.NamedTemporaryFile(prefix="javascriptTescase_", suffix=".js", delete=True) as f:
-            testcase_path = pathlib.Path(f.name)
-            pathlib.Path(testcase_path).write_bytes(bytes(testcase, encoding="utf-8"))
-            cmd = ["timeout", "-s9", "10"]
-            for ob in testbed.split():
-                cmd.append(ob)
-            cmd.append(str(testcase_path))
-            pro = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE, universal_newlines=True)
-            stdout, stderr = pro.communicate()
-            result += stdout if stdout else ""
-            result += stderr if stderr else ""
-            return result
-    else:
-        raise Exception(f"Not support the operating systems： {platform.system()}")
+
+    with tempfile.NamedTemporaryFile(prefix="javascriptTescase_", suffix=".js", delete=True) as f:
+        testcase_path = pathlib.Path(f.name)
+        pathlib.Path(testcase_path).write_bytes(bytes(testcase, encoding="utf-8"))
+        cmd = ["timeout", "-s9", "10"]
+        for ob in testbed.split():
+            cmd.append(ob)
+        cmd.append(str(testcase_path))
+        pro = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, universal_newlines=True)
+        stdout, stderr = pro.communicate()
+        result += stdout if stdout else ""
+        result += stderr if stderr else ""
+        return result
 
 
 class ESAPI:
