@@ -71,4 +71,4 @@ class Hparams:
     # parser.add_argument('--uglifyjs_path', default='/export/nisl/ty/node_modules/uglify-es/bin/uglifyjs', type=str, help="uglifyjs的二进制路径")
 
 
-hparams = Hparams().parser.parse_args()
+hparams = Hparams().parser.parse_known_args()[0]
