@@ -20,13 +20,12 @@ class Hparams:
     parser.add_argument('--workspace', default='default', type=str, help="本次文件路径")
 
     # 训练数据相关
-    # parser.add_argument('--data_path', default='C:/Users/ty/Desktop/大论文相关/data/after06.db', type=str, help="训练数据路径")
     parser.add_argument('--data_path', default='/root/ESfunfuzz/data/after07.db', type=str)
     parser.add_argument('--data_number', default=-1, type=int, help="训练数据数量")
-    parser.add_argument('--max_length', default=-1, type=int, help="训练数据最大字符长度")
-    parser.add_argument('--split_length', default=-1, type=int, help="训练数据最大字符长度")
+    parser.add_argument('--max_length', default=-1, type=int, help="训练数据最大字符长度，-1表示不限制")
+    parser.add_argument('--split_length', default=-1, type=int, help="训练数据最大字符长度，-1表示不限制")
     parser.add_argument('--embedding_level', default='char', type=str, help="训练数据的编码级别，char/word/bpe")
-    parser.add_argument('--vocab_size', default=500, type=int, help="词汇表数量，排名靠后的词将被替换为<unk>")
+    parser.add_argument('--vocab_size', default=-1, type=int, help="词汇表数量，排名靠后的词将被替换为<unk>，-1表示不限制")
 
     # 模型相关
     parser.add_argument('--batch_size', default=32, type=int)
@@ -44,7 +43,7 @@ class Hparams:
     parser.add_argument('--save_every_epoch', default=10, type=int, help="每隔多少epoch保存一次模型")
 
     # 代码生成相关
-    parser.add_argument('--gen_model', default='CodeGenerator/workspace/default/model.ckpt', type=str, help="生成所使用的模型")
+    parser.add_argument('--gen_model', default='CodeGenerator/workspace/char_old/model_20.ckpt', type=str, help="生成所使用的模型")
     parser.add_argument('--gen_file', default='gen.txt', type=str, help="保存生成数据的文件名（仅需要指定名称即可）")
     parser.add_argument('--prefix', default='function', type=str, help="生成数据的前缀")
     parser.add_argument('--gen_number', default=64, type=int, help="生成数据的数量")
@@ -57,18 +56,14 @@ class Hparams:
     # 注意这里4个引擎的先后顺序不能变化，必须是：chakra、SpiderMonkey、jsc、v8
     # 并且引擎地址必须是绝对地址（也不能使用 '~'）
     parser.add_argument('--engines', default=[
-        "/home/nisl1/nisl8121/.jsvu/ch",
-        "/home/nisl1/nisl8121/.jsvu/sm",
-        "/home/nisl1/nisl8121/.jsvu/jsc",
-        "/home/nisl1/nisl8121/.jsvu/v8"
+        "/root/.jsvu/ch",
+        "/root/.jsvu/sm",
+        "/root/.jsvu/jsc",
+        "/root/.jsvu/v8"
     ], type=list, help="待测引擎列表")
     parser.add_argument('--timeout', default=15, type=int, help="用例执行的最大时间")
     parser.add_argument('--new_line_number', default=-1, type=int, help="变异时生成的新行的个数，要求为-1或者大于0")
     parser.add_argument('--seed_pool_url', default='mysql://root:nisl8830@localhost:3306/ty_fuzzing_data?charset=utf8', type=str, help="指定本次Fuzzing的种子池的数据库url")
-
-    # 检查和统计相关
-    parser.add_argument('--uglifyjs_path', default='/home/nisl1/nisl8121/ty/node_modules/uglify-es/bin/uglifyjs', type=str, help="uglifyjs的二进制路径")
-    # parser.add_argument('--uglifyjs_path', default='/export/nisl/ty/node_modules/uglify-es/bin/uglifyjs', type=str, help="uglifyjs的二进制路径")
 
 
 hparams = Hparams().parser.parse_known_args()[0]
