@@ -15,7 +15,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import Column, Integer, String, Text, DateTime
 from sqlalchemy.ext.declarative import declarative_base
-from  sqlalchemy.sql.expression import func, select
+from sqlalchemy.sql.expression import func, select
 
 
 Base = declarative_base()
@@ -65,9 +65,6 @@ class FilteredTestcase(Base):
 
 
 class DataBase:
-    """
-    db_path_url实例：mysql://root:nisl8830@localhost:3306/classify?charset=utf8
-    """
     def __init__(self, db_path_url: str) -> None:
         # 创建数据库连接和基本映射类(假如数据库存在就用已存在的)
         self.engine = create_engine(db_path_url, echo=False)
@@ -119,7 +116,7 @@ class DataBase:
         session = Session()
         random_testcase = None
         try:
-            random_testcase = session.query(Testcase).order_by(func.rand()).first()
+            random_testcase = session.query(Testcase).order_by(func.random()).first()
         except Exception as e:
             pass
         finally:

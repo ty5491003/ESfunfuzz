@@ -43,7 +43,7 @@ class Hparams:
     parser.add_argument('--save_every_epoch', default=10, type=int, help="每隔多少epoch保存一次模型")
 
     # 代码生成相关
-    parser.add_argument('--gen_model', default='CodeGenerator/workspace/char_old/model_20.ckpt', type=str, help="生成所使用的模型")
+    parser.add_argument('--gen_model', default='CodeGenerator/workspace/char/model_50.ckpt', type=str, help="生成所使用的模型")
     parser.add_argument('--gen_file', default='gen.txt', type=str, help="保存生成数据的文件名（仅需要指定名称即可）")
     parser.add_argument('--prefix', default='function', type=str, help="生成数据的前缀")
     parser.add_argument('--gen_number', default=64, type=int, help="生成数据的数量")
@@ -63,7 +63,7 @@ class Hparams:
     ], type=list, help="待测引擎列表")
     parser.add_argument('--timeout', default=15, type=int, help="用例执行的最大时间")
     parser.add_argument('--new_line_number', default=-1, type=int, help="变异时生成的新行的个数，要求为-1或者大于0")
-    parser.add_argument('--seed_pool_url', default='mysql://root:nisl8830@localhost:3306/ty_fuzzing_data?charset=utf8', type=str, help="指定本次Fuzzing的种子池的数据库url")
+    parser.add_argument('--seed_pool_url', default='sqlite:////root/ESfunfuzz/Data/ty_fuzzing_data.db', type=str, help="指定本次Fuzzing的种子池的数据库url")
 
 
 hparams = Hparams().parser.parse_known_args()[0]

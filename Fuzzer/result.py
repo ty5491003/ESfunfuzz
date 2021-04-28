@@ -247,7 +247,7 @@ class Result:
             return False
 
     @staticmethod
-    def is_syntax_correct(testcase, uglifyjs_path):
+    def is_syntax_correct(testcase, uglifyjs_path='uglifyjs'):
         """
         使用uglifyjs工具执行用例语法正确性的检查
         Args:
@@ -279,21 +279,6 @@ class Result:
                                    encoding='utf-8')
 
         return p.returncode == 0
-
-    @staticmethod
-    def is_semantic_correct(result):
-        """
-        对新生成用例的Fuzzing结果中的语义正确的情况进行判断
-        语义正确：只要超过一半的引擎执行结果是'pass'，则认为该用例是语义正确的
-        Args:
-            result (Result): 新生成用例的Fuzzing结果
-
-        Returns:
-            bool，语义正确返回True；语义错误返回False
-        """
-        # 读取每个引擎的执行结果的类别
-        class_result = [output.output_class for output in result.outputs]
-        return class_result.count('pass') > (len(class_result) / 2)
 
     @staticmethod
     def result_map_to_testcase(result, timeout, parent_id):

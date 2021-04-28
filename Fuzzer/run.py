@@ -80,7 +80,6 @@ if __name__ == '__main__':
     total_count = 0
     new_seed_count = 0
     syntax_correct_count = 0
-    semantic_correct_count = 0
     filtered_case_count = 0
 
     # 构建Fuzzer和Filter
@@ -91,7 +90,6 @@ if __name__ == '__main__':
     database = DataBase(hparams.seed_pool_url)
 
     while True:
-    # for i in range(1):    # 测试用
         # step1: 从种子数据库中随机选择一个种子，并读取其结果
         seed_testcase = database.get_a_record_randomly()
         code_str = seed_testcase.testcase
@@ -137,10 +135,8 @@ if __name__ == '__main__':
             new_fuzzing_testcase.remark = f'{hparams.new_line_number}, {index}'  # remark中加上更多信息，便于回溯
 
             # 进行语法正确情况统计
-            if Result.is_syntax_correct(new_fuzzing_result.testcase, hparams.uglifyjs_path):
+            if Result.is_syntax_correct(new_fuzzing_result.testcase):
                 syntax_correct_count += 1
-            if Result.is_semantic_correct(new_fuzzing_result):
-                semantic_correct_count += 1
 
             # 假如新生成的用例是可疑用例，才有意义
             if new_fuzzing_result.is_suspicious():
@@ -155,11 +151,6 @@ if __name__ == '__main__':
                     filtered_case_count += 1
                     database.add(Result.testcase_transform_to_filtered_testcase(new_fuzzing_testcase))
 
-            # print('-' * 40)
-            # print(f'syntax: {Result.is_syntax_correct(new_fuzzing_result.testcase, hparams.uglifyjs_path)}')
-            # print(f'semantic: {Result.is_semantic_correct(new_fuzzing_result)}')
-            # print(new_fuzzing_result.serialize())
-
         # 每fuzzing50个种子，打印一次当前的情况汇总
         if (seed_count % 50 == 0 or seed_count == 1) and total_count != 0:
             this_time = time()
@@ -168,7 +159,6 @@ if __name__ == '__main__':
             print(f'已Fuzzing种子用例:              {seed_count}')
             print(f'已Fuzzing新生成用例:            {total_count}')
             print(f'新生成用例中语法正确的用例及占比:  {syntax_correct_count}({round_up(syntax_correct_count/total_count*100)}%)')
-            print(f'新生成用例中语义正确的用例及占比:  {semantic_correct_count}({round_up(semantic_correct_count / total_count * 100)}%)')
             print(f'新生成的种子用例数量:            {new_seed_count}')
             print(f'被过滤的用例数量:               {filtered_case_count}')
             print(f'Fuzzing的速度为:               {format(total_count/seconds, ".2f")}个/秒')
