@@ -70,8 +70,10 @@ class Output:
 
     def get_engine_name_from_testbed(self):
         """
-        注意控制引擎名称，必须是 chakra/spidermonkey/jsc/v8，后续会有根据这个名称来判断的情况
+        注意控制引擎名称，必须是 chakra/spidermonkey/jsc/v8/jerry，后续会有根据这个名称来判断的情况
         """
+        if 'jerry' in self.testbed:
+            return 'jerry'
         if 'engines' in self.testbed:
             return self.testbed.split('engines')[1].split('/')[1]
         elif 'jsvu' in self.testbed:
@@ -102,7 +104,7 @@ class Output:
         if self.output_class == 'runtime_error':
 
             # 提取到error_info（因为不同引擎的error_info是由不同位置输出的）
-            if self.engine_name.lower() == 'chakra' or self.engine_name.lower() == 'spidermonkey':
+            if self.engine_name.lower() in ['chakra', 'spidermonkey', 'jerry']:
                 error_info = self.stderr
             else:
                 error_info = self.stdout
