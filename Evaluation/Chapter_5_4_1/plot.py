@@ -64,21 +64,24 @@ def drawBars(coverages, fuzzer_names):
     # plt.savefig('5.4.1_result.png')
 
 
-def extractMetrics(fuzzer):
-    if fuzzer == 'ESfunfuzz':
-        return [67.30, 68.38, 65.43, 45.39]
-    # 使用jshint测试得到的通过率
-    parent_dir = f"Evaluation/Chapter_5_4_1/result/{fuzzer.lower()}/{fuzzer.lower()}_report/"
+def read_data(result_path) -> dict:
+    with open(result_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+    return json.loads(content)
+
+
+def extractMetrics(fuzzer, data_dir):
+    # 设定覆盖率结果文件目录
+    parent_dir = os.path.join(data_dir, f'{fuzzer.lower()}/{fuzzer.lower()}_report/')
     coverage_path = os.path.join(parent_dir, "coverage-summary.json")
 
-    passing_rates = {"ESfunfuzz": 65.73,  # 即65.73%
-                     "DIE": 58.11,
-                     "Fuzzilli": 76.43,
-                     "Montage": 37.89,
-                     "CodeAlchemist": 33.03}
+    # 读取通过率
+    passing_rates = read_data(os.path.join(data_dir, 'passing_rate.json'))
     with open(coverage_path, "r", encoding="utf-8") as f:
         content = f.read()
     coverage_message = json.loads(content)
+
+    # 返回数据
     passing_rate = passing_rates[fuzzer]
     statement_cov = coverage_message['total']["statements"]['pct']
     function_cov = coverage_message['total']["functions"]['pct']
@@ -86,13 +89,13 @@ def extractMetrics(fuzzer):
     return [passing_rate, statement_cov, function_cov, branch_cov]
 
 
-def plot():
+def plot(data_dir='Evaluation/Chapter_5_4_1/result'):
     coverages = []
     fuzzers = ["ESfunfuzz", "DIE", "Fuzzilli", "Montage", "CodeAlchemist"]
     for fuzzer in fuzzers:
-        coverages.append(extractMetrics(fuzzer))
+        coverages.append(extractMetrics(fuzzer, data_dir))
     drawBars(coverages, fuzzers)
 
 
 if __name__ == '__main__':
-    plot()
+    plot('result')
