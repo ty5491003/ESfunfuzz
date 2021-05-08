@@ -2,15 +2,15 @@ import json
 import matplotlib.pyplot as plt
 
 
-def read_data(result_path='Evaluation/Chapter_5_3_2/evaluate_result.json') -> dict:
+def read_data(result_path) -> dict:
     with open(result_path, 'r', encoding='utf-8') as f:
         content = f.read()
     return json.loads(content)
 
 
-def plot():
+def plot(result_path='Evaluation/Chapter_5_3_2/evaluate_result.json'):
     # 读取数据
-    data = read_data()
+    data = read_data(result_path)
 
     x = data['Epoch']
     y = data['Char编码']
@@ -29,8 +29,8 @@ def plot():
 
     # color：颜色，linewidth：线宽，linestyle：线条类型，label：图例，marker：数据点的类型
     plt.plot(data['Epoch'], data['Char编码'], color="dimgray", linewidth=2, linestyle='-', label='Char编码', marker='o')
-    plt.plot(data['Epoch'], data['Word编码'], color="dimgray", linewidth=1, linestyle='dashed', label='BPE编码', marker='+')
-    plt.plot(data['Epoch'], data['BPE编码'], color="dimgray", linewidth=1.5, linestyle='dotted', label='Word编码', marker='*')
+    plt.plot(data['Epoch'], data['BPE编码'], color="dimgray", linewidth=1, linestyle='dashed', label='BPE编码', marker='+')
+    plt.plot(data['Epoch'], data['Word编码'], color="dimgray", linewidth=1.5, linestyle='dotted', label='Word编码', marker='*')
 
     # 加上数值标记
     for x_, y_ in zip(x, y):
@@ -49,4 +49,4 @@ def plot():
 
 
 if __name__ == '__main__':
-    plot()
+    plot('evaluate_result.json')
