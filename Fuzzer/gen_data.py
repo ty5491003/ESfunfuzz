@@ -1,19 +1,11 @@
-# -*- coding: utf-8 -*-
-#
-# @Version: python 3.7
-# @File: run.py
-# @Author: ty
-# @E-mail: nwu_ty@163.com
-# @Time: 2020/12/15
-# @Description:
-# @Input:
-# @Output:
-#
-
 import os
 import re
 import torch
 import random
+import tempfile
+import pathlib
+import subprocess
+
 
 from typing import *
 from time import time
@@ -29,6 +21,7 @@ from CodeGenerator.conf import hparams
 from CodeGenerator.utils import load_json, cut
 from CodeGenerator.sample import sample_solo
 from CodeGenerator.model import LSTM
+from CodeGenerator.utils import list_insert_db
 
 
 device = torch.device(f"cuda:{hparams.gpu}" if torch.cuda.is_available() else "cpu")
@@ -60,6 +53,36 @@ def get_mutation_points(code_str: str, js_compile) -> List[int]:
     return point_indexes[:5]
 
 
+def execute(testcase, engine):
+    def judge_pass(returncode, stdout, stderr) -> bool:
+        if returncode == -9:
+            return False
+
+        # 若returncode为负，且不为-9，则判断为crash
+        if returncode < 0:
+            return False
+
+        # 接下来是returncode>=0的情况，先针对chakra这个特例来进行判断：
+        if stderr != '':
+            return False
+        else:
+            return True
+
+    # 写入临时文件，并使用ChakraCore引擎执行
+    with tempfile.NamedTemporaryFile(prefix="ESfunfuzz_Testcase_", delete=True) as f:
+        p = pathlib.Path(f.name)
+        p.write_text(testcase, encoding='utf-8')
+
+        cmd = ["timeout", "-s9", '10', engine, str(p)]
+        pro = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, universal_newlines=True)
+        stdout, stderr = pro.communicate()
+        returncode=pro.returncode
+
+    # 根据执行结果判断是否通过
+    return judge_pass(returncode, stdout, stderr)
+
+
 if __name__ == '__main__':
     # 环境检查
     from Fuzzer.environment_check import check
@@ -74,18 +97,16 @@ if __name__ == '__main__':
     # 恢复模型（注意load方法没有device参数）
     model = torch.load(hparams.gen_model, map_location=f'cuda:{hparams.gpu}').to(device)
     model.device = device
-    print("词汇表和模型已恢复，开始Fuzzing.")
 
     # 设置计数器
-    seed_count = 0
     total_count = 0
-    new_seed_count = 0
-    syntax_correct_count = 0
-    filtered_case_count = 0
-
-    # 构建Fuzzer和Filter
-    fuzzer = Fuzzer(hparams.engines, hparams.timeout)
-    start_time = time()
+    pass_count = 0
+    no_pass_count = 0
+    engine = '/root/.jsvu/ChakraCoreFiles/bin/ch'
+    pass_testcases = []
+    no_pass_testcases = []
+    pass_db = '/root/ESfunfuzz/Data/pass.db'
+    no_pass_db = '/root/ESfunfuzz/Data/no_pass.db'
 
     # 创建数据库连接
     database = DataBase(hparams.seed_pool_url)
@@ -94,7 +115,6 @@ if __name__ == '__main__':
         # step1: 从种子数据库中随机选择一个种子，并读取其结果
         seed_testcase = database.get_a_record_randomly()
         code_str = seed_testcase.testcase
-        seed_count += 1
 
         # step2:返回其中的所有变异点的索引
         mutation_point_indexes = get_mutation_points(code_str, js_compile)
@@ -130,37 +150,23 @@ if __name__ == '__main__':
             # 对new_testcase格式化
             new_testcase = re.sub(' +', ' ', new_testcase.strip().replace('\n', ' ').replace('\t', ' '))
 
-            # 对新生成的用例执行fuzzing
-            new_fuzzing_result = fuzzer.run_testcase_multi_threads(new_testcase)
-            new_fuzzing_testcase = Result.result_map_to_testcase(new_fuzzing_result, hparams.timeout, seed_testcase.id)
-            new_fuzzing_testcase.remark = f'{hparams.new_line_number}, {index}'  # remark中加上更多信息，便于回溯
+            # 根据用例是否通过的结果，将其写入不同的数据库
+            if execute(new_testcase, engine):
+                pass_count += 1
+                pass_testcases.append(new_testcase)
+                if len(pass_testcases) == 100:
+                    list_insert_db(pass_testcases, pass_db)
+                    pass_testcases = []
 
-            # 进行语法正确情况统计
-            if Result.is_syntax_correct(new_fuzzing_result.testcase):
-                syntax_correct_count += 1
+            else:
+                no_pass_count += 1
+                no_pass_testcases.append(new_testcase)
+                if len(no_pass_testcases) == 100:
+                    list_insert_db(no_pass_testcases, no_pass_db)
+                    no_pass_testcases = []
 
-            # 假如新生成的用例是可疑用例，才有意义
-            if new_fuzzing_result.is_suspicious():
-
-                # 新旧比较（即去重）
-                if database.compare_and_filter(new_fuzzing_testcase):
-                    new_seed_count += 1
-                    database.add(new_fuzzing_testcase)
-
-                # 被过滤的用例最好也写入数据库，便于回溯
-                else:
-                    filtered_case_count += 1
-                    database.add(Result.testcase_transform_to_filtered_testcase(new_fuzzing_testcase))
-
-        # 每fuzzing50个种子，打印一次当前的情况汇总
-        if (seed_count % 50 == 0 or seed_count == 1) and total_count != 0:
-            this_time = time()
-            seconds = int(this_time-start_time) + 1
-            print(f'Fuzzing已持续:                 {seconds_to_date(seconds)}')
-            print(f'已Fuzzing种子用例:              {seed_count}')
-            print(f'已Fuzzing新生成用例:            {total_count}')
-            print(f'新生成用例中语法正确的用例及占比:  {syntax_correct_count}({round_up(syntax_correct_count/total_count*100)}%)')
-            print(f'新生成的种子用例数量:            {new_seed_count}')
-            print(f'被过滤的用例数量:               {filtered_case_count}')
-            print(f'Fuzzing的速度为:               {format(total_count/seconds, ".2f")}个/秒')
-            print('-' * 40)
+            # 打印生成的信息
+            if total_count % 200 == 0:
+                print(f'当前已生成{total_count}条用例：')
+                print(f'其中有{pass_count}条通过，{no_pass_count}条未通过')
+                print('-' * 40)

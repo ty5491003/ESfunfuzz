@@ -136,6 +136,36 @@ def db2list(source_db_path: str, table_name='corpus', column_name='Content') -> 
     return contents
 
 
+def list_insert_db(_list: List[str], target_db_path: str, table_name='corpus', column_name='Content'):
+    """
+    将传入的list数据追加插入到数据库中
+    Args:
+        _list (list): list形式的数据
+        target_db_path (str): 要生成的数据库地址
+        table_name (str): 表名
+        column_name (str): 列名
+
+    Returns:
+        None
+    """
+    results = [[line.strip()] for line in _list]
+    target_db_op = DBOperation(target_db_path, table_name=table_name)
+
+    # 若数据库存在，且不为空，则不用初始化，可以直接向其中插入数据
+    if os.path.exists(target_db_op.db_path) and not target_db_op.is_empty():
+        pass
+
+    # 若数据库不存在，或者数据库存在但为空，则需要将其初始化
+    else:
+        conn = target_db_op.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(target_db_op.ddl)
+
+    # 插入数据
+    target_db_op.insert([column_name], results)
+    target_db_op.finalize()
+
+
 def get_batch_iter(preprocess, batch_size):
     """
     根据处理训练数据的preprocess，产生一个生成器，能够按固定的batch_size返回映射和padding后的训练数据
