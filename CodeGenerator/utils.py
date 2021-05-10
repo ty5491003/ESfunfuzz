@@ -17,6 +17,8 @@ import math
 import logging
 import json
 
+import execjs
+
 import sentencepiece as spm
 
 from CodeGenerator.conf import hparams
@@ -272,6 +274,21 @@ def text2token(text: str, token_to_idx: dict, batch_size: int, embedding_level):
                                                    value=token_to_idx.get(char, token_to_idx.get('<unk>')))
 
     return token_tensor
+
+
+def syntax_check(code):
+    checker = execjs.compile("""
+        function check(code) {
+            try {
+                eval(code);
+                return true;
+            } catch (e) {
+                return !(e instanceof SyntaxError);
+            }
+        }
+     """)
+    return checker.call("check", code)
+
 
 def cut(text):
     # 1.按<eos>切分
