@@ -31,7 +31,7 @@ def sample_solo(model, prefix, max_gen_length, token_to_idx, idx_to_token, segme
         str, 即生成内容
     """
     with torch.no_grad():
-        gen_code_list = prefix
+        gen_code = prefix
 
         # 初始化隐藏状态
         hidden = model.init_hidden(1)
@@ -57,7 +57,7 @@ def sample_solo(model, prefix, max_gen_length, token_to_idx, idx_to_token, segme
             _, topi = prob.topk(1)
 
         # 生成内容添加
-        gen_code_list += idx_to_token.get(int(topi[0].data))
+        gen_code += idx_to_token.get(int(topi[0].data))
 
         # 开始后续生成，在一次生成多条的情况下，采取的策略是直接生成最大长度，再cut
         end_mark_number = 0
@@ -82,7 +82,7 @@ def sample_solo(model, prefix, max_gen_length, token_to_idx, idx_to_token, segme
                 break
 
             # 生成内容添加
-            gen_code_list += new_token
+            gen_code += new_token
 
             # 判断是否达到行数上限而终止
             # 生成固定行数时，batch_size应固定为1，所以直接取idx=0时的结果即可
@@ -91,7 +91,7 @@ def sample_solo(model, prefix, max_gen_length, token_to_idx, idx_to_token, segme
                 if end_mark_number == new_line_number:
                     break
 
-        return gen_code_list
+        return gen_code
 
 
 def sample_multi(model, prefix, batch_size, max_gen_length, token_to_idx, idx_to_token, segment_length, embedding_level='char', temperature=1.0):

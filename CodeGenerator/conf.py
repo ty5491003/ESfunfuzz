@@ -43,7 +43,7 @@ class Hparams:
     parser.add_argument('--save_every_epoch', default=10, type=int, help="每隔多少epoch保存一次模型")
 
     # 代码生成相关
-    parser.add_argument('--gen_model', default='CodeGenerator/workspace/char/model_50.ckpt', type=str, help="生成所使用的模型")
+    parser.add_argument('--gen_model', default='CodeGenerator/workspace/char/model_40.ckpt', type=str, help="生成所使用的模型")
     parser.add_argument('--gen_file', default='gen.txt', type=str, help="保存生成数据的文件名（仅需要指定名称即可）")
     parser.add_argument('--prefix', default='function', type=str, help="生成数据的前缀")
     parser.add_argument('--gen_number', default=64, type=int, help="生成数据的数量")
