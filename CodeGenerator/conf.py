@@ -39,7 +39,7 @@ class Hparams:
 
     # 模型训练相关
     parser.add_argument('--epoch', default=50, type=int)
-    parser.add_argument('--gpu', default=1, type=int, help="使用的GPU编号(默认1号)")
+    parser.add_argument('--gpu', default=0, type=int, help="使用的GPU编号(默认1号)")
     parser.add_argument('--save_every_epoch', default=10, type=int, help="每隔多少epoch保存一次模型")
 
     # 代码生成相关

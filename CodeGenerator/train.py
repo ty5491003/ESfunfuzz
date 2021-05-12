@@ -37,7 +37,7 @@ if __name__ == '__main__':
 
     token_to_idx = preprocessor.token_to_idx
     vocab_size = len(token_to_idx)
-    assert vocab_size == preprocessor.chars_number
+    assert vocab_size == preprocessor.token_number
 
     # 模型声明
     model = LSTM(vocab_size,

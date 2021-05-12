@@ -168,5 +168,3 @@ if __name__ == '__main__':
             # 打印生成的信息
             if total_count % 200 == 0:
                 print(f'当前已生成{total_count}条用例：')
-                print(f'其中有{pass_count}条通过，{no_pass_count}条未通过')
-                print('-' * 40)

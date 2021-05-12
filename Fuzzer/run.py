@@ -72,7 +72,10 @@ if __name__ == '__main__':
     idx_to_token = load_json(os.path.join(workspace_path, 'idx_to_token.json'), transfer=True)
 
     # 恢复模型（注意load方法没有device参数）
-    model = torch.load(hparams.gen_model, map_location=f'cuda:{hparams.gpu}').to(device)
+    if torch.cuda.is_available():
+        model = torch.load(hparams.gen_model, map_location=f'cuda:{hparams.gpu}').to(device)
+    else:
+        model = torch.load(hparams.gen_model, map_location='cpu').to(device)
     model.device = device
     print("词汇表和模型已恢复，开始Fuzzing.")
 
@@ -89,78 +92,83 @@ if __name__ == '__main__':
 
     # 创建数据库连接
     database = DataBase(hparams.seed_pool_url)
+    print('-' * 40)
 
     while True:
-        # step1: 从种子数据库中随机选择一个种子，并读取其结果
-        seed_testcase = database.get_a_record_randomly()
-        code_str = seed_testcase.testcase
-        seed_count += 1
+        try:
+            # step1: 从种子数据库中随机选择一个种子，并读取其结果
+            seed_testcase = database.get_a_record_randomly()
+            code_str = seed_testcase.testcase
+            seed_count += 1
 
-        # step2:返回其中的所有变异点的索引
-        mutation_point_indexes = get_mutation_points(code_str, js_compile)
+            # step2:返回其中的所有变异点的索引
+            mutation_point_indexes = get_mutation_points(code_str, js_compile)
 
-        # step3:按变异点，依次变异，并执行fuzzing决定是否保存
-        for index in mutation_point_indexes:
-            total_count += 1
-            prefix = code_str[:index+1]
-            tail = code_str[index+1:]
+            # step3:按变异点，依次变异，并执行fuzzing决定是否保存
+            for index in mutation_point_indexes:
+                total_count += 1
+                prefix = code_str[:index+1]
+                tail = code_str[index+1:]
 
-            gen_code = sample_solo(model=model,
-                                   prefix=prefix,
-                                   max_gen_length=hparams.max_gen_length,
-                                   token_to_idx=token_to_idx,
-                                   idx_to_token=idx_to_token,
-                                   segment_length=hparams.segment_length,
-                                   new_line_number=hparams.new_line_number,
-                                   temperature=hparams.temperature,
-                                   sample=hparams.sample)
+                gen_code = sample_solo(model=model,
+                                       prefix=prefix,
+                                       max_gen_length=hparams.max_gen_length,
+                                       token_to_idx=token_to_idx,
+                                       idx_to_token=idx_to_token,
+                                       segment_length=hparams.segment_length,
+                                       new_line_number=hparams.new_line_number,
+                                       temperature=hparams.temperature,
+                                       sample=hparams.sample)
 
-            # 根据参数判断是续写生成还是插入生成
-            if hparams.new_line_number == -1:
-                new_testcase = cut(gen_code)
+                # 根据参数判断是续写生成还是插入生成
+                if hparams.new_line_number == -1:
+                    new_testcase = cut(gen_code)
 
-            # 插入生成
-            else:
-                assert hparams.new_line_number > 0, '请指定正确的new_line_number参数，应该为-1或者大于0'
-
-                # 对tail做修剪，防止tail中遗留的上一句内容导致用例语法不正确
-                tail = tail[tail.find(';') + 1:]
-                new_testcase = cut(gen_code + tail)
-
-            # 对new_testcase格式化
-            new_testcase = re.sub(' +', ' ', new_testcase.strip().replace('\n', ' ').replace('\t', ' '))
-
-            # 对新生成的用例执行fuzzing
-            new_fuzzing_result = fuzzer.run_testcase_multi_threads(new_testcase)
-            new_fuzzing_testcase = Result.result_map_to_testcase(new_fuzzing_result, hparams.timeout, seed_testcase.id)
-            new_fuzzing_testcase.remark = f'{hparams.new_line_number}, {index}'  # remark中加上更多信息，便于回溯
-
-            # 进行语法正确情况统计
-            if Result.is_syntax_correct(new_fuzzing_result.testcase):
-                syntax_correct_count += 1
-
-            # 假如新生成的用例是可疑用例，才有意义
-            if new_fuzzing_result.is_suspicious():
-
-                # 新旧比较（即去重）
-                if database.compare_and_filter(new_fuzzing_testcase):
-                    new_seed_count += 1
-                    database.add(new_fuzzing_testcase)
-
-                # 被过滤的用例最好也写入数据库，便于回溯
+                # 插入生成
                 else:
-                    filtered_case_count += 1
-                    database.add(Result.testcase_transform_to_filtered_testcase(new_fuzzing_testcase))
+                    assert hparams.new_line_number > 0, '请指定正确的new_line_number参数，应该为-1或者大于0'
 
-        # 每fuzzing50个种子，打印一次当前的情况汇总
-        if (seed_count % 50 == 0 or seed_count == 1) and total_count != 0:
-            this_time = time()
-            seconds = int(this_time-start_time) + 1
-            print(f'Fuzzing已持续:                 {seconds_to_date(seconds)}')
-            print(f'已Fuzzing种子用例:              {seed_count}')
-            print(f'已Fuzzing新生成用例:            {total_count}')
-            print(f'新生成用例中语法正确的用例及占比:  {syntax_correct_count}({round_up(syntax_correct_count/total_count*100)}%)')
-            print(f'新生成的种子用例数量:            {new_seed_count}')
-            print(f'被过滤的用例数量:               {filtered_case_count}')
-            print(f'Fuzzing的速度为:               {format(total_count/seconds, ".2f")}个/秒')
-            print('-' * 40)
+                    # 对tail做修剪，防止tail中遗留的上一句内容导致用例语法不正确
+                    tail = tail[tail.find(';') + 1:]
+                    new_testcase = cut(gen_code + tail)
+
+                # 对new_testcase格式化
+                new_testcase = re.sub(' +', ' ', new_testcase.strip().replace('\n', ' ').replace('\t', ' '))
+
+                # 对新生成的用例执行fuzzing
+                new_fuzzing_result = fuzzer.run_testcase_multi_threads(new_testcase)
+                new_fuzzing_testcase = Result.result_map_to_testcase(new_fuzzing_result, hparams.timeout, seed_testcase.id)
+                new_fuzzing_testcase.remark = f'{hparams.new_line_number}, {index}'  # remark中加上更多信息，便于回溯
+
+                # 进行语法正确情况统计
+                if Result.is_syntax_correct(new_fuzzing_result.testcase):
+                    syntax_correct_count += 1
+
+                # 假如新生成的用例是可疑用例，才有意义
+                if new_fuzzing_result.is_suspicious():
+
+                    # 新旧比较（即去重）
+                    if database.compare_and_filter(new_fuzzing_testcase):
+                        new_seed_count += 1
+                        database.add(new_fuzzing_testcase)
+
+                    # 被过滤的用例最好也写入数据库，便于回溯
+                    else:
+                        filtered_case_count += 1
+                        database.add(Result.testcase_transform_to_filtered_testcase(new_fuzzing_testcase))
+
+            # 每fuzzing 30个种子，打印一次当前的情况汇总
+            if (seed_count % 30 == 0 or seed_count == 1) and total_count != 0:
+                this_time = time()
+                seconds = int(this_time-start_time) + 1
+                print(f'Fuzzing已持续:                 {seconds_to_date(seconds)}')
+                print(f'已Fuzzing种子用例:              {seed_count}')
+                print(f'已Fuzzing新生成用例:            {total_count}')
+                print(f'新生成用例中语法正确的用例及占比:  {syntax_correct_count}({round_up(syntax_correct_count/total_count*100)}%)')
+                print(f'新生成的种子用例数量:            {new_seed_count}')
+                print(f'被过滤的用例数量:               {filtered_case_count}')
+                print(f'Fuzzing的速度为:               {format(total_count/seconds, ".2f")}个/秒')
+                print('-' * 40)
+
+        except Exception:
+            pass
