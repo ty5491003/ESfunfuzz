@@ -1,1 +1,0 @@
-function DumpObject(o) { for (var i = 0; i < o.length; ++i) { var d = this[o]; } } var a = new Array(4294967295); print(a.length); a[42] = 1; a[2] = 1; a[3] = 1; DumpObject(a); function Foo() { } Foo.prototype[3] = 101; var o = new Foo(); o[3] = 3; o[4] = 4; DumpObject(o);

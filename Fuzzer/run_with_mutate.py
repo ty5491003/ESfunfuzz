@@ -65,8 +65,8 @@ if __name__ == '__main__':
                         filtered_case_count += 1
                         database.add(Result.testcase_transform_to_filtered_testcase(new_fuzzing_testcase))
 
-                # 每fuzzing 100个新用例，则打印一次当前的情况汇总
-                if total_count % 100 == 0:
+                # 每fuzzing 50个新用例，则打印一次当前的情况汇总
+                if total_count == 1 or total_count % 50 == 0:
                     this_time = time()
                     seconds = int(this_time-start_time) + 1
                     print(f'Fuzzing已持续:                 {seconds_to_date(seconds)}')

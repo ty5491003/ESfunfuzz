@@ -1,1 +1,0 @@
-let x = 2; let y = 1; function blah() { return len > 1 ? "0" : ""; } function f() { return "(" + x + ")"; } function f() { return ""; } function __parseUri() { var c = __parseUri; if (y == 1) print(c.options); } __parseUri.options = 'Pass'; __proto__ = "production"; 

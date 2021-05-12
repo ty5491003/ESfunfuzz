@@ -1,1 +1,0 @@
-print('Checking for new Date() with DST issues: '); print('Backward loop starts'); for (var working = new Date(2014, 2, 1); working.getFullYear() > 1940;) 
