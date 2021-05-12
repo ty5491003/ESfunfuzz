@@ -148,6 +148,7 @@ jupyter notebook --port=3821 --notebook-dir=~/ESfunfuzz
 
 此处对项目整体组织结构进行描述（仅目录和极个别重要文件）
 
+```txt
 .
 ├── CaseMutator：用例突变模块
 │   ├── APIs：ES标准解析模块需要的文件
@@ -170,6 +171,9 @@ jupyter notebook --port=3821 --notebook-dir=~/ESfunfuzz
 ├── README.md：项目说明文件
 ├── main.ipynb：Jupyter Notebook演示入口文件
 ├── requirements.txt：Python第三方库依赖
+```
+
+
 
 
 
