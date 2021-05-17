@@ -1,2 +1,4 @@
 .idea
 *.pyc
+CodeGenerator/workspace
+Data
