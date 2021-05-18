@@ -32,16 +32,16 @@ ESfunfuzz可以通过调用GPU来加速程序执行，但你必须先为Docker�
 
 **Step4.启动该镜像对应的容器**
 
-启动支持GPU的容器（要求必须执行了Step3）：
-
-```bash
-docker run -it --name ESfunfuzz -p 3821:3821 --gpus all ty_esfunfuzz:3.0
-```
-
-或者，启动CPU的容器（通用）：
+启动CPU的容器（通用）：
 
 ```bash
 docker run -it --name ESfunfuzz -p 3821:3821 ty_esfunfuzz:3.0
+```
+
+或者，启动支持GPU的容器（要求必须执行了Step3）：
+
+```bash
+docker run -it --name ESfunfuzz -p 3821:3821 --gpus all ty_esfunfuzz:3.0
 ```
 
 通常，启动容器后会自动进入该容器，即可开始使用。但假如你的Docker并未进入该容器，则需要再使用如下命令手动进入容器：
