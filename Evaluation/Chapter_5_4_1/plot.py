@@ -17,7 +17,7 @@ def drawBars(coverages, fuzzer_names):
 
     # 初始
     arguments = ["通过率", "行覆盖率", "方法覆盖率", "分支覆盖率"]
-    fc = ['k', 'dimgray', 'grey', 'darkgray', 'gainsboro']
+    fc = ['k', 'gainsboro', 'gainsboro', 'darkgray', 'gainsboro']
     hatch = ['', '//', 'x', '\\\\', '.']
 
     # 我的修改
